@@ -219,7 +219,10 @@ input.fi::placeholder{color:var(--lt);font-weight:400;}
 <body>
 
 <div class="bar">
-  <div><b>이룬디자인 청구서</b><span>클릭해서 수정 · PDF로 저장</span></div>
+  <div>
+    <b><input id="siteTitle" value="이룬디자인 청구서" style="font-size:14px;font-weight:600;border:none;outline:none;background:transparent;font-family:inherit;width:160px;" onkeydown="ne(event)"></b>
+    <span style="font-size:11px;color:var(--lt);">@eroondesign</span>
+  </div>
   <div style="display:flex;align-items:center;gap:10px;">
     <div class="color-picker-wrap" id="colorPickerWrap">
       <button class="btn-color" onclick="toggleColorPicker(event)" title="포인트 컬러 변경">
@@ -255,13 +258,13 @@ input.fi::placeholder{color:var(--lt);font-weight:400;}
             style="font-size:18px;font-weight:800;letter-spacing:.05em;width:220px;"
             oninput="sync('brand')" onkeydown="ne(event)">
         </div>
-        <div class="logo-sub">Brand &amp; Design Studio</div>
+        <div class="logo-sub"><input class="fi" id="brandSub" value="Brand &amp; Design Studio" placeholder="부제목" style="font-size:10px;color:var(--lt);width:160px;" oninput="syncSub()" onkeydown="ne(event)"><span class="pv" id="pv-brandSub">Brand &amp; Design Studio</span></div>
       </div>
       <!-- 이미지 모드 -->
       <div id="logoImgMode" style="display:none;">
         <img id="logoImg" src="" alt="로고"
           style="max-height:48px;max-width:220px;object-fit:contain;display:block;">
-        <div class="logo-sub" style="margin-top:4px;">Brand &amp; Design Studio</div>
+        <div class="logo-sub" style="margin-top:4px;"><span id="brandSubImg">Brand &amp; Design Studio</span></div>
       </div>
       <!-- 업로드 버튼 (인쇄 시 숨김) -->
       <div class="logo-upload-row">
@@ -510,9 +513,17 @@ function sync(id){
   if(pv&&inp)pv.textContent=inp.value;
 }
 
+function syncSub(){
+  const val=document.getElementById('brandSub').value;
+  const pv=document.getElementById('pv-brandSub');
+  if(pv)pv.textContent=val;
+  const img=document.getElementById('brandSubImg');
+  if(img)img.textContent=val;
+}
 function syncAll(){
   ['brand','invno','proj','cname','cmgr','cemail','sname','srep','semail','bizno',
    'bname','bacct','bholder','memo','ftrmain','ftremail'].forEach(sync);
+  syncSub();
   // 날짜 pv 동기화
   ['issue','due'].forEach(id=>{
     const dv=document.getElementById('dv-'+id);
