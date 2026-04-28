@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>이룬디자인 청구서</title>
+<style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+:root{--ac:#534AB7;--al:#EEEDFE;--dk:#1C1C1E;--lt:#9B9B9B;--ln:#E8E8E8;--bg:#F7F7F9;--rd:#D85A30;--gn:#0F6E56;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Pretendard',sans-serif;background:#EBEBEE;color:var(--dk);font-size:12px;line-height:1.5;}
+
+/* ── 툴바 ── */
+.bar{position:fixed;top:0;left:0;right:0;background:#fff;border-bottom:1px solid var(--ln);padding:10px 24px;display:flex;align-items:center;justify-content:space-between;z-index:200;box-shadow:0 1px 6px rgba(0,0,0,.06);}
+.bar b{font-size:14px;font-weight:600;display:block;}
+.bar span{font-size:11px;color:var(--lt);}
+.btn-pdf{background:var(--ac);color:#fff;border:none;padding:8px 20px;border-radius:7px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;}
+
+/* ── 로고 업로드 ── */
+.logo-area{display:flex;flex-direction:column;gap:4px;}
+.logo-upload-row{display:flex;align-items:center;gap:6px;margin-top:4px;}
+.logo-upload-btn{font-size:10px;color:var(--lt);cursor:pointer;padding:2px 8px;border:1px dashed var(--ln);border-radius:4px;white-space:nowrap;transition:all .1s;}
+.logo-upload-btn:hover{border-color:var(--ac);color:var(--ac);background:var(--al);}
+.logo-reset-btn{font-size:10px;color:var(--lt);background:none;border:none;cursor:pointer;padding:2px 6px;}
+.logo-reset-btn:hover{color:var(--rd);}
+
+/* ── 컬러 피커 ── */
+.color-picker-wrap{position:relative;}
+.btn-color{display:flex;align-items:center;gap:6px;background:#f3f2ff;border:1px solid var(--ln);padding:6px 12px;border-radius:7px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;color:var(--dk);}
+.btn-color:hover{background:var(--al);}
+.color-dot{width:14px;height:14px;border-radius:50%;background:var(--ac);display:inline-block;flex-shrink:0;}
+.color-panel{display:none;position:absolute;top:calc(100% + 6px);right:0;z-index:300;background:#fff;border:1px solid var(--ln);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.13);padding:16px;width:220px;}
+.color-panel.open{display:block;}
+.cp-title{font-size:11px;font-weight:700;color:var(--lt);letter-spacing:.06em;margin-bottom:10px;}
+.cp-presets{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:12px;}
+.cp-swatch{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform .1s;}
+.cp-swatch:hover{transform:scale(1.15);}
+.cp-swatch.active{border-color:var(--dk);transform:scale(1.1);}
+.cp-label{font-size:11px;color:var(--lt);display:block;margin-bottom:6px;}
+.cp-custom-row{display:flex;align-items:center;gap:6px;}
+input[type="color"]{width:32px;height:32px;border:none;border-radius:6px;padding:0;cursor:pointer;background:none;}
+input[type="color"]::-webkit-color-swatch-wrapper{padding:0;}
+input[type="color"]::-webkit-color-swatch{border-radius:6px;border:1px solid var(--ln);}
+#colorHex{flex:1;border:1px solid var(--ln);border-radius:6px;padding:5px 8px;font-size:12px;font-family:inherit;outline:none;}
+#colorHex:focus{border-color:var(--ac);}
+
+/* ── 페이지 (웹) ── */
+.wrap{margin-top:60px;padding:28px 20px 60px;display:flex;justify-content:center;}
+.inv{background:#fff;width:794px;min-height:1100px;padding:46px 50px 50px;box-shadow:0 4px 24px rgba(0,0,0,.09);border-radius:3px;}
+
+/* ── 헤더 ── */
+.hdr{display:flex;justify-content:space-between;align-items:flex-start;}
+.logo-block{display:flex;flex-direction:column;}
+.logo-ec{cursor:text;border-radius:3px;transition:background .1s;}
+.logo-ec:hover{background:#f3f2ff;}
+.logo-ec:focus-within{background:var(--al);box-shadow:inset 0 0 0 1.5px var(--ac);}
+.logo-sub{font-size:10px;color:var(--lt);margin-top:4px;}
+.doc-ttl{font-size:26px;font-weight:300;letter-spacing:.35em;text-align:right;line-height:1;}
+.doc-no-row{font-size:11px;color:var(--lt);text-align:right;margin-top:5px;}
+.dvdr{height:1.5px;background:var(--ac);margin:10px 0 14px;}
+
+/* ── 메타 ── */
+.meta{width:100%;border-collapse:collapse;margin-bottom:16px;}
+.meta td{padding:6px 8px;border-bottom:.5px solid var(--ln);font-size:12px;vertical-align:middle;}
+.meta .L{color:var(--lt);width:12%;white-space:nowrap;}
+.meta .V{font-weight:600;width:38%;}
+
+/* ── 편집 셀 ── */
+.ec{cursor:text;border-radius:3px;transition:background .1s;}
+.ec:hover{background:#f3f2ff;}
+.ec:focus-within{background:var(--al);box-shadow:inset 0 0 0 1.5px var(--ac);}
+
+/* ── input 공통 ── */
+input.fi{font-family:'Pretendard',sans-serif;font-size:inherit;font-weight:inherit;color:inherit;border:none;background:transparent;outline:none;padding:0;width:100%;}
+input.fi::placeholder{color:var(--lt);font-weight:400;}
+
+/* ── 날짜 피커 ── */
+.dc{position:relative;cursor:pointer;border-radius:3px;transition:background .1s;}
+.dc:hover{background:#f3f2ff;}
+.dc.active{background:var(--al);box-shadow:inset 0 0 0 1.5px var(--ac);}
+.dp{display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:500;background:#fff;
+    border:1px solid var(--ln);border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,.16);padding:14px;width:256px;}
+.dp.open{display:block;}
+.dp-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.dp-nav button{background:none;border:none;cursor:pointer;font-size:16px;color:var(--dk);padding:2px 8px;border-radius:4px;font-family:inherit;}
+.dp-nav button:hover{background:var(--al);}
+.dp-nav span{font-size:12px;font-weight:700;color:var(--dk);}
+.dp-today-btn{width:100%;margin-bottom:8px;padding:5px 0;background:var(--al);color:var(--ac);border:none;border-radius:5px;font-size:11px;font-weight:700;font-family:inherit;cursor:pointer;letter-spacing:.04em;}
+.dp-today-btn:hover{background:#dddcf8;}
+.dp-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;}
+.dp-dn{font-size:10px;color:var(--lt);text-align:center;padding:3px 0;}
+.dp-d{font-size:11px;text-align:center;padding:5px 1px;border-radius:4px;cursor:pointer;user-select:none;}
+.dp-d:hover{background:var(--al);}
+.dp-d.today{color:var(--ac);font-weight:700;}
+.dp-d.sel{background:var(--ac);color:#fff!important;font-weight:700;}
+.dp-d.emp{cursor:default;}
+
+/* ── 카테고리 ── */
+.cat-td{position:relative;}
+.cat-row{display:flex;align-items:center;gap:6px;}
+.cat-val{font-weight:600;}
+.cat-btn{cursor:pointer;font-size:10px;font-weight:500;color:var(--ac);background:var(--al);border:none;border-radius:4px;padding:2px 7px;font-family:inherit;white-space:nowrap;}
+.cat-btn::after{content:' ▾';}
+.cat-inline{border:none;border-bottom:1.5px solid var(--ac);background:transparent;font-family:inherit;font-size:12px;font-weight:600;color:var(--dk);outline:none;padding:0 2px;width:150px;display:none;}
+.cat-inline.show{display:inline-block;}
+.cat-row.direct-mode .cat-val{display:none!important;}
+.cat-menu{display:none;position:absolute;top:100%;left:0;z-index:400;background:#fff;border:1px solid var(--ln);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.13);min-width:190px;overflow:hidden;}
+.cat-menu.open{display:block;}
+.ci{padding:8px 14px;font-size:12px;cursor:pointer;border-bottom:.5px solid var(--ln);}
+.ci:last-child{border-bottom:none;}
+.ci:hover{background:var(--al);color:var(--ac);}
+.ci.sel{background:var(--al);color:var(--ac);font-weight:600;}
+.ci{display:flex;align-items:center;justify-content:space-between;}
+.ci-lbl{flex:1;}
+.ci-del{background:none;border:none;color:var(--lt);font-size:14px;cursor:pointer;padding:0 2px;line-height:1;flex-shrink:0;display:none;}
+.ci:hover .ci-del{display:inline;}
+.ci-del:hover{color:var(--rd);}
+.ci-add-row{gap:4px;padding:6px 10px;}
+.cat-add-inp{flex:1;border:none;border-bottom:1px solid var(--ln);font-family:inherit;font-size:12px;outline:none;padding:2px 4px;background:transparent;}
+.cat-add-inp:focus{border-color:var(--ac);}
+.ci-add-btn{background:var(--ac);color:#fff;border:none;border-radius:4px;width:22px;height:22px;font-size:14px;cursor:pointer;flex-shrink:0;line-height:1;}
+.ci-direct{display:block;}
+
+/* ── 수신/발신 ── */
+.party{display:grid;grid-template-columns:1fr 1fr;margin-bottom:20px;border-radius:4px;overflow:hidden;}
+.p{padding:13px 15px;}
+.p.r{background:var(--al);}
+.p.s{background:var(--bg);border-left:.5px solid var(--ln);}
+.p-lbl{font-size:10px;font-weight:700;color:var(--ac);letter-spacing:.06em;margin-bottom:5px;}
+.p-name{font-size:13px;font-weight:700;margin-bottom:3px;}
+.p-info{font-size:11px;color:var(--lt);line-height:1.8;}
+.slbl{font-size:10px;font-weight:700;color:var(--ac);letter-spacing:.08em;margin-bottom:5px;}
+
+/* ── 테이블 ── */
+.T{width:100%;table-layout:fixed;border-collapse:collapse;font-size:12px;margin-bottom:4px;}
+.T thead tr{background:var(--ac);}
+.T thead th{color:#fff;font-weight:600;font-size:11px;padding:8px 10px;letter-spacing:.02em;overflow:hidden;white-space:nowrap;}
+.T thead th:first-child{border-radius:3px 0 0 0;}
+.T thead th:last-child{border-radius:0 3px 0 0;}
+.T tbody tr:nth-child(odd){background:#fff;}
+.T tbody tr:nth-child(even){background:var(--bg);}
+.T tbody td{padding:7px 10px;border-bottom:.5px solid var(--ln);vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.T tbody td.W{white-space:normal;word-break:keep-all;}
+.T th.D,.T td.D{width:26px;padding:0;text-align:center;}
+.del{background:none;border:none;color:var(--lt);font-size:15px;cursor:pointer;padding:0 3px;}
+.del:hover{color:var(--rd);}
+.add{background:none;border:1px dashed var(--ln);color:var(--lt);font-size:11px;font-family:inherit;padding:5px 12px;border-radius:4px;cursor:pointer;margin:4px 0 12px;}
+.add:hover{border-color:var(--ac);color:var(--ac);background:var(--al);}
+
+/* ── 합계 ── */
+.ST{width:100%;border-collapse:collapse;margin-bottom:18px;}
+.ST td{padding:5px 10px;font-size:12px;}
+.ST .L{color:var(--lt);}
+.ST .A{text-align:right;}
+.ST tr.tot td{padding:9px 10px;font-weight:700;border-top:1.5px solid var(--ac);border-bottom:1.5px solid var(--ac);background:var(--al);}
+.ST tr.tot .L{font-size:13px;color:var(--dk);}
+.ST tr.tot .A{font-size:16px;color:var(--ac);}
+
+/* ── 계좌 ── */
+.bank{background:var(--bg);border-radius:4px;padding:13px 16px;margin-bottom:20px;line-height:2;}
+.bank-acct-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:14px;font-weight:700;color:var(--dk);}
+.bank-acct-row b{color:var(--dk);font-size:14px;font-weight:700;}
+.bank-acct-row input.fi{font-size:14px;font-weight:700;color:var(--dk);width:auto;}
+.bank-acct-row input.fi[data-f="bank"]{min-width:60px;max-width:90px;}
+.bank-acct-row input.fi[data-f="acct"]{min-width:130px;max-width:170px;}
+.bank-acct-row input.fi[data-f="holder"]{min-width:90px;max-width:150px;}
+.bank-acct-row .pv{font-size:14px;font-weight:700;color:var(--dk);}
+.bsep{color:#ccc;user-select:none;font-weight:400;}
+.bank-due-row{font-size:12px;font-weight:400;color:#555;display:flex;align-items:center;gap:4px;flex-wrap:wrap;}
+.bank-due-row b{color:var(--dk);font-weight:700;}
+
+/* ── 금액 색상 ── */
+.ex{color:var(--rd);font-weight:600;}
+.neg{color:var(--gn);font-weight:600;}
+
+/* ── 비고 / 푸터 ── */
+.memo-wrap{padding:6px 0 0;}
+.memo-wrap input.fi{width:100%;font-size:12px;line-height:1.8;}
+.ftr{border-top:.5px solid var(--ln);padding-top:10px;text-align:center;font-size:10px;color:var(--lt);margin-top:22px;}
+.ftr-inner{display:inline-flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:center;}
+.ftr input.fi{font-size:10px;color:var(--lt);text-align:center;}
+
+/* ══════════════════════════
+   화면: pv 숨김
+══════════════════════════ */
+@media screen{.pv{display:none;}}
+
+/* ══════════════════════════
+   인쇄 - 핵심: .inv 패딩으로 여백 제어
+   @page margin은 0으로 두고
+   .inv 자체 padding으로 사방 여백 조절
+══════════════════════════ */
+@media print{
+  @page{size:A4;margin:0;}
+  html,body{margin:0;padding:0;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .bar,.add,.del,.D,.dp,.cat-menu,.cat-btn,.logo-upload-row{display:none!important;}
+  .wrap{margin:0;padding:0;display:block;}
+  /* ★ 웹에서 보이는 것과 동일하게: inv 패딩으로 사방 여백 */
+  .inv{
+    box-shadow:none;border-radius:0;
+    width:100%;min-height:auto;
+    padding:18mm 16mm 18mm 16mm; /* 상 우 하 좌 여백 */
+  }
+  /* input 숨기고 pv 표시 */
+  input.fi{display:none!important;}
+  .pv{display:inline!important;}
+  /* 날짜 셀 표시값 */
+  .dv-lbl{display:inline!important;font-weight:600;}
+  /* 호버/포커스 제거 */
+  .dc,.ec,.logo-ec{background:transparent!important;box-shadow:none!important;}
+  .cat-inline,.cat-btn{display:none!important;}
+  .cat-row.direct-mode .cat-val{display:inline!important;}
+  /* 배경색 강제 */
+  .T thead tr,.T tbody tr:nth-child(even),.ST tr.tot td,.p.r,.p.s,.bank{
+    -webkit-print-color-adjust:exact;print-color-adjust:exact;}
+}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <div><b>이룬디자인 청구서</b><span>클릭해서 수정 · PDF로 저장</span></div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div class="color-picker-wrap" id="colorPickerWrap">
+      <button class="btn-color" onclick="toggleColorPicker(event)" title="포인트 컬러 변경">
+        <span class="color-dot" id="colorDot"></span> 컬러
+      </button>
+      <div class="color-panel" id="colorPanel">
+        <div class="cp-title">포인트 컬러</div>
+        <div class="cp-presets" id="cpPresets"></div>
+        <div class="cp-custom">
+          <label class="cp-label">직접 입력</label>
+          <div class="cp-custom-row">
+            <input type="color" id="colorCustom" onchange="applyColor(this.value)">
+            <input type="text" id="colorHex" placeholder="#534AB7" maxlength="7"
+              oninput="onHexInput(this.value)" onkeydown="if(event.key==='Enter')applyColor(document.getElementById('colorHex').value)">
+          </div>
+        </div>
+      </div>
+    </div>
+    <button class="btn-pdf" onclick="printInvoice()">📄 PDF로 저장</button>
+  </div>
+</div>
+
+<div class="wrap"><div class="inv">
+
+  <!-- ── 헤더 ── -->
+  <div class="hdr">
+    <div class="logo-block">
+      <!-- 텍스트 모드 -->
+      <div id="logoTextMode">
+        <div class="logo-ec" style="font-size:18px;font-weight:800;letter-spacing:.05em;line-height:1;">
+          <span class="pv" id="pv-brand"></span>
+          <input class="fi" id="brand" value="EROON DESIGN" placeholder="브랜드명"
+            style="font-size:18px;font-weight:800;letter-spacing:.05em;width:220px;"
+            oninput="sync('brand')" onkeydown="ne(event)">
+        </div>
+        <div class="logo-sub">Brand &amp; Design Studio</div>
+      </div>
+      <!-- 이미지 모드 -->
+      <div id="logoImgMode" style="display:none;">
+        <img id="logoImg" src="" alt="로고"
+          style="max-height:48px;max-width:220px;object-fit:contain;display:block;">
+        <div class="logo-sub" style="margin-top:4px;">Brand &amp; Design Studio</div>
+      </div>
+      <!-- 업로드 버튼 (인쇄 시 숨김) -->
+      <div class="logo-upload-row">
+        <label class="logo-upload-btn" for="logoFileInput">📁 로고 업로드</label>
+        <input type="file" id="logoFileInput" accept="image/*" style="display:none;" onchange="onLogoUpload(this)">
+        <button class="logo-reset-btn" id="logoResetBtn" onclick="resetLogo()" style="display:none;">✕ 제거</button>
+      </div>
+    </div>
+    <div>
+      <div class="doc-ttl">청 구 서</div>
+      <div class="doc-no-row">Invoice No.&nbsp;
+        <span class="pv" id="pv-invno"></span>
+        <input class="fi" id="invno" style="font-size:11px;color:var(--lt);font-weight:400;width:84px;text-align:right;"
+          oninput="sync('invno')" onkeydown="ne(event)">
+      </div>
+    </div>
+  </div>
+  <div class="dvdr"></div>
+
+  <!-- ── 기본 정보 ── -->
+  <table class="meta">
+    <tr>
+      <!-- 발행일 달력 -->
+      <td class="L">발행일</td>
+      <td class="V dc" id="dc-issue" onclick="openDp('issue',event)" style="position:relative;">
+        <span class="pv" id="pv-issue"></span>
+        <span class="dv-lbl" id="dv-issue" style="font-weight:600;"></span>
+        <div class="dp" id="dp-issue" onclick="event.stopPropagation()">
+          <div class="dp-nav">
+            <button onclick="cm('issue',-1);event.stopPropagation()">‹</button>
+            <span id="dt-issue"></span>
+            <button onclick="cm('issue',1);event.stopPropagation()">›</button>
+          </div>
+          <button class="dp-today-btn" onclick="goToday('issue');event.stopPropagation()">오늘</button>
+          <div class="dp-grid" id="dg-issue"></div>
+        </div>
+      </td>
+      <!-- 지급기한 달력 -->
+      <td class="L">지급기한</td>
+      <td class="V dc" id="dc-due" onclick="openDp('due',event)" style="position:relative;">
+        <span class="pv" id="pv-due"></span>
+        <span class="dv-lbl" id="dv-due" style="font-weight:600;"></span>
+        <div class="dp" id="dp-due" onclick="event.stopPropagation()">
+          <div class="dp-nav">
+            <button onclick="cm('due',-1);event.stopPropagation()">‹</button>
+            <span id="dt-due"></span>
+            <button onclick="cm('due',1);event.stopPropagation()">›</button>
+          </div>
+          <button class="dp-today-btn" onclick="goToday('due');event.stopPropagation()">오늘</button>
+          <div class="dp-grid" id="dg-due"></div>
+        </div>
+      </td>
+    </tr>
+    <tr>
+      <td class="L">프로젝트</td>
+      <td class="V ec">
+        <span class="pv" id="pv-proj"></span>
+        <input class="fi" id="proj" placeholder="프로젝트명" value="건기식 브랜드 패키지 디자인"
+          oninput="sync('proj')" onkeydown="ne(event)">
+      </td>
+      <td class="L">카테고리</td>
+      <td class="V cat-td">
+        <div class="cat-row" id="catRow">
+          <span class="cat-val" id="catVal">패키지 디자인</span>
+          <span class="pv" id="pv-cat"></span>
+          <input class="cat-inline fi" id="catInline" placeholder="카테고리 직접 입력 후 Enter"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();applyCat();}" onblur="applyCatBlur()">
+          <button class="cat-btn" onclick="toggleCat(event)">변경</button>
+        </div>
+        <div class="cat-menu" id="catMenu">
+          <div class="ci" onclick="pickCat(this)"><span class="ci-lbl">전자책 디자인</span><button class="ci-del" onclick="delCat(this,event)" title="삭제">×</button></div>
+          <div class="ci" onclick="pickCat(this)"><span class="ci-lbl">상세페이지 디자인</span><button class="ci-del" onclick="delCat(this,event)" title="삭제">×</button></div>
+          <div class="ci sel" onclick="pickCat(this)"><span class="ci-lbl">패키지 디자인</span><button class="ci-del" onclick="delCat(this,event)" title="삭제">×</button></div>
+          <div class="ci" onclick="pickCat(this)"><span class="ci-lbl">인쇄물 디자인</span><button class="ci-del" onclick="delCat(this,event)" title="삭제">×</button></div>
+          <div class="ci" onclick="pickCat(this)"><span class="ci-lbl">블로그 디자인</span><button class="ci-del" onclick="delCat(this,event)" title="삭제">×</button></div>
+          <div class="ci" onclick="pickCat(this)"><span class="ci-lbl">SNS 콘텐츠 디자인</span><button class="ci-del" onclick="delCat(this,event)" title="삭제">×</button></div>
+          <div class="ci ci-add-row">
+            <input id="catAddInput" class="cat-add-inp" placeholder="새 항목 입력 후 Enter"
+              onclick="event.stopPropagation()"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();addCatItem();}">
+            <button class="ci-add-btn" onclick="addCatItem();event.stopPropagation()">+</button>
+          </div>
+          <div class="ci ci-direct" onclick="pickCat(this)">✏️ 직접 작성</div>
+        </div>
+      </td>
+    </tr>
+  </table>
+
+  <!-- ── 수신/발신 ── -->
+  <div class="party">
+    <div class="p r">
+      <div class="p-lbl">수신 (청구 대상)</div>
+      <div class="p-name ec">
+        <span class="pv" id="pv-cname"></span>
+        <input class="fi" id="cname" style="font-size:13px;font-weight:700;" placeholder="클라이언트 회사명" value="헬씨랩 주식회사"
+          oninput="sync('cname')" onkeydown="ne(event)">
+      </div>
+      <div class="p-info">
+        담당자:&nbsp;<span class="pv" id="pv-cmgr"></span>
+        <input class="fi" id="cmgr" style="width:170px;" placeholder="이름 · 연락처" value="김민수 팀장 · 010-1234-5678"
+          oninput="sync('cmgr')" onkeydown="ne(event)"><br>
+        <span class="pv" id="pv-cemail"></span>
+        <input class="fi" id="cemail" style="width:180px;" placeholder="이메일" value="mskim@healthylab.co.kr"
+          oninput="sync('cemail')" onkeydown="ne(event)">
+      </div>
+    </div>
+    <div class="p s">
+      <div class="p-lbl">발신 (청구인)</div>
+      <div class="p-name ec">
+        <span class="pv" id="pv-sname"></span>
+        <input class="fi" id="sname" style="font-size:13px;font-weight:700;" placeholder="스튜디오명" value="이룬디자인"
+          oninput="sync('sname')" onkeydown="ne(event)">
+      </div>
+      <div class="p-info">
+        <span class="pv" id="pv-srep"></span>
+        <input class="fi" id="srep" style="width:120px;" placeholder="대표자명" value="대표 이룬"
+          oninput="sync('srep')" onkeydown="ne(event)"><br>
+        <span class="pv" id="pv-semail"></span>
+        <input class="fi" id="semail" style="width:180px;" placeholder="이메일" value="eroon@eroondesign.com"
+          oninput="sync('semail')" onkeydown="ne(event)"><br>
+        사업자번호:&nbsp;<span class="pv" id="pv-bizno"></span>
+        <input class="fi" id="bizno" style="width:100px;" placeholder="000-00-00000" value="000-00-00000"
+          oninput="sync('bizno')" onkeydown="ne(event)">
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 청구 내역 ── -->
+  <div class="slbl">청구 내역</div>
+  <table class="T" id="IT">
+    <colgroup>
+      <col style="width:118px"><col><col style="width:50px">
+      <col style="width:116px"><col style="width:116px"><col style="width:26px">
+    </colgroup>
+    <thead><tr>
+      <th style="text-align:left;">항목</th><th style="text-align:left;">내용</th>
+      <th style="text-align:center;">수량</th><th style="text-align:right;">단가</th>
+      <th style="text-align:right;">금액</th><th class="D"></th>
+    </tr></thead>
+    <tbody id="IB"></tbody>
+  </table>
+  <button class="add" onclick="addItemRow()">+ 항목 추가</button>
+
+  <!-- ── 합계 ── -->
+  <table class="ST">
+    <tr><td class="L">공급가액</td><td class="A" id="sub">0원</td></tr>
+    <tr><td class="L">부가세 (VAT 10%)</td><td class="A" id="vat">0원</td></tr>
+    <tr class="tot"><td class="L">최종 청구금액</td><td class="A" id="tot">0원</td></tr>
+  </table>
+
+  <!-- ── 계좌 ── -->
+  <div class="bank">
+    <div class="bank-acct-row">
+      <b>입금 계좌</b>
+      <span class="pv" id="pv-bname"></span>
+      <input class="fi" id="bname" data-f="bank" placeholder="은행명" value="카카오뱅크"
+        oninput="sync('bname')" onkeydown="ne(event)">
+      <span class="bsep">|</span>
+      <span class="pv" id="pv-bacct"></span>
+      <input class="fi" id="bacct" data-f="acct" placeholder="계좌번호" value="3333-00-1234567"
+        oninput="sync('bacct')" onkeydown="ne(event)">
+      <span class="bsep">|</span>
+      예금주:&nbsp;<span class="pv" id="pv-bholder"></span>
+      <input class="fi" id="bholder" data-f="holder" placeholder="예금주명" value="이룬(이룬디자인)"
+        oninput="sync('bholder')" onkeydown="ne(event)">
+    </div>
+    <!-- ★ 지급기한: JS로 dv-due와 자동 연동 -->
+    <div class="bank-due-row">
+      <b>지급 기한</b>&nbsp;
+      <span id="bankDue"></span>&nbsp;까지&nbsp;·&nbsp;기한 초과 시 지연이자가 발생할 수 있습니다.
+    </div>
+  </div>
+
+  <!-- ── 수정 이력 ── -->
+  <div class="slbl">수정 이력</div>
+  <table class="T" id="RT">
+    <colgroup>
+      <col style="width:58px"><col style="width:116px"><col>
+      <col style="width:110px"><col style="width:26px">
+    </colgroup>
+    <thead><tr>
+      <th style="text-align:center;">회차</th><th style="text-align:left;">날짜</th>
+      <th style="text-align:left;">내용</th><th style="text-align:right;">추가 금액</th>
+      <th class="D"></th>
+    </tr></thead>
+    <tbody id="RB"></tbody>
+  </table>
+  <button class="add" onclick="addRevRow()">+ 수정 이력 추가</button>
+
+  <!-- ── 비고 ── -->
+  <div class="slbl" style="margin-top:4px;">비고</div>
+  <div class="memo-wrap">
+    <span class="pv" id="pv-memo"></span>
+    <input class="fi" id="memo" placeholder="비고 사항을 입력하세요"
+      value="잔금은 최종 파일 전달 후 3영업일 이내 입금 부탁드립니다. 원본 파일(AI/PSD)은 잔금 입금 확인 후 전달됩니다."
+      oninput="sync('memo')" onkeydown="ne(event)" style="font-size:12px;line-height:1.8;">
+  </div>
+
+  <!-- ── 푸터 ── -->
+  <div class="ftr">
+    <div class="ftr-inner">
+      <span class="pv" id="pv-ftrmain"></span>
+      <input class="fi" id="ftrmain" value="본 청구서는 이룬디자인이 발행한 공식 문서입니다."
+        style="width:280px;text-align:right;" oninput="sync('ftrmain')" onkeydown="ne(event)">
+      &nbsp;&nbsp;문의:&nbsp;
+      <span class="pv" id="pv-ftremail"></span>
+      <input class="fi" id="ftremail" value="eroon@eroondesign.com"
+        style="width:170px;" oninput="sync('ftremail')" onkeydown="ne(event)">
+    </div>
+  </div>
+
+</div></div>
+
+<script>
+/* ══ 유틸 ══ */
+function ne(e){if(e.key==='Enter'&&!e.isComposing){e.preventDefault();e.target.blur();}}
+
+// 한글 조합 중 엔터 시 마지막 글자 중복 방지
+function neDate(e){
+  if(e.key==='Enter'){
+    e.preventDefault();
+    e.target.blur();
+  }
+}
+
+// 숫자 입력 → YYYY-MM-DD 자동 포맷
+function fmtDate(inp){
+  // 숫자만 추출
+  const digits=inp.value.replace(/\D/g,'').slice(0,8);
+  let out='';
+  if(digits.length>=5) out=digits.slice(0,4)+'-'+digits.slice(4,6)+(digits.length>=7?'-'+digits.slice(6,8):'');
+  else if(digits.length>=5) out=digits.slice(0,4)+'-'+digits.slice(4);
+  else out=digits;
+  // 커서 끝으로 유지
+  const pos=out.length;
+  inp.value=out;
+  inp.setSelectionRange(pos,pos);
+  // pv 동기화
+  const pv=inp.previousElementSibling;
+  if(pv&&pv.classList.contains('pv'))pv.textContent=out;
+}
+
+function sync(id){
+  const inp=document.getElementById(id);
+  const pv=document.getElementById('pv-'+id);
+  if(pv&&inp)pv.textContent=inp.value;
+}
+
+function syncAll(){
+  ['brand','invno','proj','cname','cmgr','cemail','sname','srep','semail','bizno',
+   'bname','bacct','bholder','memo','ftrmain','ftremail'].forEach(sync);
+  // 날짜 pv 동기화
+  ['issue','due'].forEach(id=>{
+    const dv=document.getElementById('dv-'+id);
+    const pv=document.getElementById('pv-'+id);
+    if(dv&&pv)pv.textContent=dv.textContent;
+  });
+  // 카테고리
+  const cv=document.getElementById('catVal');
+  const pc=document.getElementById('pv-cat');
+  if(cv&&pc)pc.textContent=cv.textContent;
+}
+
+/* ══ 금액 ══ */
+function rawN(s){
+  s=(s||'').trim();
+  if(s===''||s==='—'||s==='-')return 0;
+  const neg=s.startsWith('-');
+  const n=parseInt(s.replace(/[^0-9]/g,''))||0;
+  return neg?-n:n;
+}
+function fmtKRW(n){return n.toLocaleString('ko-KR')+'원';}
+
+function fmtPrc(inp){
+  const v=Math.abs(rawN(inp.value));
+  inp.value=fmtKRW(v);
+  const pv=inp.previousElementSibling;
+  if(pv&&pv.classList.contains('pv'))pv.textContent=inp.value;
+  calc();
+}
+
+function fmtRev(inp){
+  const s=inp.value.trim();
+  if(s===''||s==='—'||s==='-'){
+    inp.value='—';inp.className='fi sv rev-extra';
+  } else {
+    const neg=s.startsWith('-');
+    const n=parseInt(s.replace(/[^0-9]/g,''))||0;
+    if(n===0){inp.value='—';inp.className='fi sv rev-extra';}
+    else{
+      inp.value=(neg?'-':'+')+fmtKRW(n);
+      inp.className='fi sv rev-extra '+(neg?'neg':'ex');
+    }
+  }
+  const pv=inp.previousElementSibling;
+  if(pv&&pv.classList.contains('pv')){
+    pv.textContent=inp.value;
+    pv.className='pv '+(inp.classList.contains('ex')?'ex':inp.classList.contains('neg')?'neg':'');
+  }
+  calc();
+}
+
+/* ══ 합계 ══ */
+function calc(){
+  let base=0;
+
+  // 1. 청구 내역 합산
+  document.querySelectorAll('#IB tr:not(.rev-mirror-row)').forEach(tr=>{
+    const qi=tr.querySelector('.qty'),pi=tr.querySelector('.prc');
+    if(!qi||!pi)return;
+    const q=Math.abs(rawN(qi.value))||1;
+    const p=Math.abs(rawN(pi.value));
+    const a=q*p;
+    const td=tr.querySelector('.amt-td');
+    if(td) td.querySelectorAll('.pv,.sv').forEach(el=>el.textContent=fmtKRW(a));
+    base+=a;
+  });
+
+  // 2. 수정이력 미러 행 제거 후 재생성
+  document.querySelectorAll('#IB .rev-mirror-row').forEach(r=>r.remove());
+
+  // 3. 수정이력 추가금액 → 청구내역 테이블에 미러 행 추가
+  let revTotal=0;
+  document.querySelectorAll('#RB tr').forEach(tr=>{
+    const roundInp=tr.querySelector('.fi.sv:first-child')||tr.querySelector('td:first-child input');
+    const descInp=tr.querySelectorAll('input.fi.sv')[1];
+    const extraInp=tr.querySelector('.rev-extra');
+    if(!extraInp)return;
+    const val=rawN(extraInp.value);
+    if(val===0)return;
+    const inputs=tr.querySelectorAll('input.fi.sv');
+    const roundTxt=inputs[0]?.value||'';
+    const dateTxt=inputs[1]?.value||'';
+    const descTxt=inputs[2]?.value||'';
+    const extraTxt=extraInp.value;
+    const isPos=val>0;
+    const mirrorRow=document.createElement('tr');
+    mirrorRow.className='rev-mirror-row';
+    const amt=Math.abs(val);
+    mirrorRow.innerHTML=`
+      <td style="color:var(--lt);font-size:11px;">수정 ${roundTxt}</td>
+      <td class="W" style="color:var(--lt);font-size:11px;">${descTxt}</td>
+      <td style="text-align:center;color:var(--lt);font-size:11px;">—</td>
+      <td style="text-align:right;color:var(--lt);font-size:11px;">—</td>
+      <td style="text-align:right;font-size:11px;" class="${isPos?'ex':'neg'}">${isPos?'+':'-'}${fmtKRW(amt)}</td>
+      <td class="D"></td>`;
+    document.getElementById('IB').appendChild(mirrorRow);
+    revTotal+=val;
+  });
+
+  base+=revTotal;
+  const vat=Math.round(base*.1);
+  document.getElementById('sub').textContent=fmtKRW(base);
+  document.getElementById('vat').textContent=fmtKRW(vat);
+  document.getElementById('tot').textContent=fmtKRW(base+vat);
+}
+
+/* ══ 항목 행 ══ */
+function itemRowHTML(nm,desc,qty,prc,amt){
+  return `<tr>
+    <td class="ec"><span class="pv">${nm}</span><input class="fi sv" placeholder="항목명" value="${nm}" oninput="this.previousElementSibling.textContent=this.value" onkeydown="ne(event)"></td>
+    <td class="ec W"><span class="pv">${desc}</span><input class="fi sv" placeholder="작업 내용" value="${desc}" oninput="this.previousElementSibling.textContent=this.value" onkeydown="ne(event)"></td>
+    <td class="ec" style="text-align:center;"><span class="pv">${qty}</span><input class="fi sv qty" style="text-align:center;" placeholder="1" value="${qty}" oninput="this.previousElementSibling.textContent=this.value;calc()" onkeydown="ne(event)"></td>
+    <td class="ec" style="text-align:right;"><span class="pv">${prc}</span><input class="fi sv prc" style="text-align:right;" placeholder="0원" value="${prc}" oninput="this.previousElementSibling.textContent=this.value" onblur="fmtPrc(this)" onkeydown="ne(event)"></td>
+    <td class="amt-td" style="text-align:right;"><span class="pv">${amt}</span><span class="sv">${amt}</span></td>
+    <td class="D"><button class="del" onclick="delRow(this)">×</button></td>
+  </tr>`;
+}
+function addItemRow(nm='',desc='',qty='1',prc='0원',amt='0원'){
+  document.getElementById('IB').insertAdjacentHTML('beforeend',itemRowHTML(nm,desc,qty,prc,amt));
+  document.querySelectorAll('#IB tr').slice(-1)[0]?.querySelector('input')?.focus();
+  calc();
+}
+function delRow(b){b.closest('tr').remove();calc();}
+
+/* ══ 수정이력 행 ══ */
+let revCount=0;
+function addRevRow(date,desc,extra,extraClass){
+  date=date||''; desc=desc||''; extra=extra||'—'; extraClass=extraClass||'';
+  revCount++;
+  const n=revCount;
+  const tr=document.createElement('tr');
+  tr.innerHTML=`
+    <td class="ec" style="text-align:center;"><span class="pv">${n}차</span><input class="fi sv" style="text-align:center;" value="${n}차" oninput="this.previousElementSibling.textContent=this.value;calc()" onkeydown="ne(event)"></td>
+    <td class="ec"><span class="pv">${date}</span><input class="fi sv date-inp" placeholder="YYYY-MM-DD" value="${date}" oninput="fmtDate(this)" onkeydown="neDate(event)"></td>
+    <td class="ec W"><span class="pv">${desc}</span><input class="fi sv" placeholder="수정 내용" value="${desc}" oninput="this.previousElementSibling.textContent=this.value;calc()" onkeydown="ne(event)"></td>
+    <td class="ec" style="text-align:right;"><span class="pv ${extraClass}">${extra}</span><input class="fi sv rev-extra ${extraClass}" style="text-align:right;" placeholder="—" value="${extra}" oninput="this.previousElementSibling.textContent=this.value;this.previousElementSibling.className='pv '+(this.classList.contains('ex')?'ex':this.classList.contains('neg')?'neg':'');calc();" onblur="fmtRev(this)" onkeydown="ne(event)"></td>
+    <td class="D"><button class="del" onclick="delRow(this)">×</button></td>`;
+  document.getElementById('RB').appendChild(tr);
+}
+
+/* ══ 날짜 피커 ══ */
+const dpState={};
+
+function openDp(id,e){
+  e&&e.stopPropagation();
+  const el=document.getElementById('dp-'+id);
+  if(!el)return;
+  const isOpen=el.classList.contains('open');
+  closeAll();
+  if(!isOpen){
+    if(!dpState[id]){const now=new Date();dpState[id]={y:now.getFullYear(),m:now.getMonth(),sel:null};}
+    renderDp(id);
+    el.classList.add('open');
+    const dc=document.getElementById('dc-'+id);
+    if(dc)dc.classList.add('active');
+  }
+}
+
+function renderDp(id){
+  const s=dpState[id];
+  const ms=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  const dtEl=document.getElementById('dt-'+id);
+  if(dtEl)dtEl.textContent=s.y+'년 '+ms[s.m];
+  const grid=document.getElementById('dg-'+id);
+  if(!grid)return;
+  grid.innerHTML='';
+  ['일','월','화','수','목','금','토'].forEach(d=>{
+    const el=document.createElement('div');el.className='dp-dn';el.textContent=d;grid.appendChild(el);
+  });
+  const first=new Date(s.y,s.m,1).getDay();
+  const days=new Date(s.y,s.m+1,0).getDate();
+  const today=new Date();
+  for(let i=0;i<first;i++){const el=document.createElement('div');el.className='dp-d emp';grid.appendChild(el);}
+  for(let d=1;d<=days;d++){
+    const el=document.createElement('div');el.className='dp-d';el.textContent=d;
+    if(d===today.getDate()&&s.m===today.getMonth()&&s.y===today.getFullYear())el.classList.add('today');
+    if(s.sel&&d===s.sel.getDate()&&s.m===s.sel.getMonth()&&s.y===s.sel.getFullYear())el.classList.add('sel');
+    el.onclick=()=>pickDate(id,d);
+    grid.appendChild(el);
+  }
+}
+
+function cm(id,dir){
+  if(!dpState[id])dpState[id]={y:new Date().getFullYear(),m:new Date().getMonth(),sel:null};
+  const s=dpState[id];
+  s.m+=dir;if(s.m<0){s.m=11;s.y--;}if(s.m>11){s.m=0;s.y++;}
+  renderDp(id);
+}
+
+function goToday(id){
+  const now=new Date();
+  if(!dpState[id])dpState[id]={};
+  dpState[id].y=now.getFullYear();dpState[id].m=now.getMonth();
+  renderDp(id);
+  pickDate(id,now.getDate());
+}
+
+function pickDate(id,d){
+  if(!dpState[id])return;
+  const s=dpState[id];
+  s.sel=new Date(s.y,s.m,d);
+  const label=s.y+'년 '+(s.m+1)+'월 '+d+'일';
+
+  // dv-lbl 업데이트 (화면 표시)
+  const dv=document.getElementById('dv-'+id);
+  if(dv){dv.textContent=label;dv.style.color='inherit';}
+
+  // pv 업데이트 (인쇄용)
+  const pv=document.getElementById('pv-'+id);
+  if(pv)pv.textContent=label;
+
+  // ★ 지급기한이면 계좌박스 bankDue도 자동 연동
+  if(id==='due'){
+    document.getElementById('bankDue').textContent=label;
+  }
+
+  // 달력 닫기
+  const dp=document.getElementById('dp-'+id);if(dp)dp.classList.remove('open');
+  const dc=document.getElementById('dc-'+id);if(dc)dc.classList.remove('active');
+}
+
+/* ══ 카테고리 ══ */
+function toggleCat(e){
+  e.stopPropagation();
+  const m=document.getElementById('catMenu');
+  const open=m.classList.contains('open');
+  closeAll();
+  if(!open)m.classList.add('open');
+}
+function pickCat(el){
+  const lblEl=el.querySelector('.ci-lbl');
+  const label=(lblEl?lblEl.textContent:el.textContent).replace('✏️','').trim();
+  document.querySelectorAll('.ci').forEach(i=>i.classList.remove('sel'));
+  el.classList.add('sel');
+  document.getElementById('catMenu').classList.remove('open');
+  if(label==='직접 작성'){
+    document.getElementById('catRow').classList.add('direct-mode');
+    const inp=document.getElementById('catInline');
+    inp.classList.add('show');inp.value='';inp.focus();
+  } else {
+    document.getElementById('catRow').classList.remove('direct-mode');
+    document.getElementById('catVal').textContent=label;
+    document.getElementById('pv-cat').textContent=label;
+    document.getElementById('catInline').classList.remove('show');
+  }
+}
+function applyCat(){
+  const inp=document.getElementById('catInline');
+  const v=inp.value.trim();
+  if(v){
+    document.getElementById('catVal').textContent=v;
+    document.getElementById('pv-cat').textContent=v;
+  }
+  document.getElementById('catRow').classList.remove('direct-mode');
+  inp.classList.remove('show');
+}
+function addCatItem(){
+  const inp=document.getElementById('catAddInput');
+  const val=inp.value.trim();
+  if(!val)return;
+  const menu=document.getElementById('catMenu');
+  const directItem=menu.querySelector('.ci-direct');
+  const newCi=document.createElement('div');
+  newCi.className='ci';
+  newCi.onclick=function(){pickCat(this);};
+  newCi.innerHTML=`<span class="ci-lbl">${val}</span><button class="ci-del" onclick="delCat(this,event)" title="삭제">×</button>`;
+  menu.insertBefore(newCi,directItem.previousElementSibling);
+  inp.value='';
+  // 바로 선택
+  pickCat(newCi);
+}
+function delCat(btn,e){
+  e.stopPropagation();
+  const ci=btn.closest('.ci');
+  const isSelected=ci.classList.contains('sel');
+  ci.remove();
+  if(isSelected){
+    // 선택 해제: 첫번째 항목 선택
+    const first=document.querySelector('#catMenu .ci:not(.ci-add-row):not(.ci-direct)');
+    if(first)pickCat(first);
+  }
+}
+function applyCatBlur(){
+  setTimeout(()=>{const inp=document.getElementById('catInline');if(inp.classList.contains('show'))applyCat();},150);
+}
+
+/* ══ 닫기 ══ */
+function closeAll(){
+  document.querySelectorAll('.dp.open').forEach(el=>{
+    el.classList.remove('open');
+    const id=el.id.replace('dp-','');
+    const dc=document.getElementById('dc-'+id);if(dc)dc.classList.remove('active');
+  });
+  const cm=document.getElementById('catMenu');if(cm)cm.classList.remove('open');
+}
+document.addEventListener('click',closeAll);
+
+
+
+/* ══ PDF 인쇄 ══ */
+function printInvoice(){
+  // 모든 input → pv/sv span 동기화
+  syncAll();
+  document.querySelectorAll('input.fi').forEach(inp=>{
+    const prev=inp.previousElementSibling;
+    if(prev&&(prev.classList.contains('pv')||prev.classList.contains('sv')))
+      prev.textContent=inp.value;
+  });
+  window.print();
+}
+
+/* ══ 초기 데이터 ══ */
+addItemRow('기본 작업','패키지 디자인 (3종 라인업)','1','1,200,000원','1,200,000원');
+addItemRow('추가 수정','계약 포함 2회 초과 (1회분)','1','100,000원','100,000원');
+addItemRow('시안 출력비','실물 시안 출력 및 배송','1','50,000원','50,000원');
+
+// 수정이력 초기
+(function(){
+  const rows=[
+    {date:'2025-04-10',desc:'컬러 및 타이포 수정',extra:'—',cls:''},
+    {date:'2025-04-18',desc:'로고 위치 및 배경 수정',extra:'—',cls:''},
+    {date:'2025-04-25',desc:'전면 레이아웃 전체 변경',extra:'+100,000원',cls:'ex'},
+  ];
+  rows.forEach(r=>{ addRevRow(r.date,r.desc,r.extra,r.cls); });
+})();
+
+// 인보이스 번호 자동
+(function(){
+  const now=new Date();
+  const y=now.getFullYear();
+  const m=String(now.getMonth()+1).padStart(2,'0');
+  const el=document.getElementById('invno');
+  if(el)el.value=y+'-'+m+'-001';
+  sync('invno');
+})();
+
+// 발행일 초기 (오늘)
+(function(){
+  const now=new Date();
+  dpState['issue']={y:now.getFullYear(),m:now.getMonth(),sel:now};
+  const label=now.getFullYear()+'년 '+(now.getMonth()+1)+'월 '+now.getDate()+'일';
+  const dv=document.getElementById('dv-issue');if(dv)dv.textContent=label;
+  const pv=document.getElementById('pv-issue');if(pv)pv.textContent=label;
+})();
+
+// 지급기한 초기
+(function(){
+  const now=new Date();
+  // 이번달 말일로 기본 설정
+  const lastDay=new Date(now.getFullYear(),now.getMonth()+1,0);
+  dpState['due']={y:lastDay.getFullYear(),m:lastDay.getMonth(),sel:lastDay};
+  const label=lastDay.getFullYear()+'년 '+(lastDay.getMonth()+1)+'월 '+lastDay.getDate()+'일';
+  const dv=document.getElementById('dv-due');if(dv)dv.textContent=label;
+  const pv=document.getElementById('pv-due');if(pv)pv.textContent=label;
+  document.getElementById('bankDue').textContent=label;
+})();
+
+/* ══ 로고 업로드 ══ */
+function onLogoUpload(input){
+  const file=input.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    const img=document.getElementById('logoImg');
+    img.src=e.target.result;
+    document.getElementById('logoTextMode').style.display='none';
+    document.getElementById('logoImgMode').style.display='block';
+    document.getElementById('logoResetBtn').style.display='inline';
+  };
+  reader.readAsDataURL(file);
+}
+function resetLogo(){
+  document.getElementById('logoImg').src='';
+  document.getElementById('logoTextMode').style.display='block';
+  document.getElementById('logoImgMode').style.display='none';
+  document.getElementById('logoResetBtn').style.display='none';
+  document.getElementById('logoFileInput').value='';
+}
+
+/* ══ 컬러 피커 ══ */
+const PRESETS=[
+  '#534AB7','#E85D4A','#1DA462','#F59E0B','#3B82F6',
+  '#EC4899','#8B5CF6','#14B8A6','#F97316','#64748B',
+  '#1C1C1E','#6B7280'
+];
+
+function initColorPicker(){
+  const grid=document.getElementById('cpPresets');
+  PRESETS.forEach(hex=>{
+    const sw=document.createElement('div');
+    sw.className='cp-swatch';
+    sw.style.background=hex;
+    sw.title=hex;
+    sw.onclick=()=>applyColor(hex);
+    grid.appendChild(sw);
+  });
+  // 초기 dot 색 반영
+  updateDot(getComputedStyle(document.documentElement).getPropertyValue('--ac').trim()||'#534AB7');
+}
+
+function applyColor(hex){
+  hex=hex.trim();
+  if(!/^#[0-9A-Fa-f]{6}$/.test(hex))return;
+  // 밝은 버전 (al) 자동 계산
+  const al=hexToAl(hex);
+  document.documentElement.style.setProperty('--ac',hex);
+  document.documentElement.style.setProperty('--al',al);
+  document.getElementById('colorCustom').value=hex;
+  document.getElementById('colorHex').value=hex;
+  updateDot(hex);
+  // active 표시
+  document.querySelectorAll('.cp-swatch').forEach(sw=>{
+    sw.classList.toggle('active',sw.style.background===hex||sw.style.background===hexToRgb(hex));
+  });
+}
+
+function hexToAl(hex){
+  // 포인트컬러의 15% 불투명 버전 (배경용)
+  const r=parseInt(hex.slice(1,3),16);
+  const g=parseInt(hex.slice(3,5),16);
+  const b=parseInt(hex.slice(5,7),16);
+  // 흰 배경에 15% 혼합
+  const mix=(c)=>Math.round(c*0.15+255*0.85).toString(16).padStart(2,'0');
+  return '#'+mix(r)+mix(g)+mix(b);
+}
+function hexToRgb(hex){
+  const r=parseInt(hex.slice(1,3),16);
+  const g=parseInt(hex.slice(3,5),16);
+  const b=parseInt(hex.slice(5,7),16);
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
+function updateDot(hex){
+  const dot=document.getElementById('colorDot');
+  if(dot)dot.style.background=hex;
+}
+
+function onHexInput(val){
+  if(/^#[0-9A-Fa-f]{6}$/.test(val.trim()))applyColor(val.trim());
+}
+
+function toggleColorPicker(e){
+  e.stopPropagation();
+  const panel=document.getElementById('colorPanel');
+  panel.classList.toggle('open');
+}
+document.addEventListener('click',function(e){
+  const wrap=document.getElementById('colorPickerWrap');
+  if(wrap&&!wrap.contains(e.target)){
+    document.getElementById('colorPanel').classList.remove('open');
+  }
+});
+
+initColorPicker();
+applyColor('#534AB7');
+
+syncAll();
+calc();
+</script>
+</body>
+</html>
